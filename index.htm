@@ -5,16 +5,21 @@
     <style>
         body {
             display: flex;
-            flex-direction: column;
             align-items: center;
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
         }
 
+        .maze-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20px;
+        }
+
         canvas {
             border: 2px solid #333;
-            margin-bottom: 20px;
         }
 
         .button-container {
@@ -23,30 +28,32 @@
             align-items: center;
         }
 
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
         .button {
             font-size: 18px;
             padding: 10px 20px;
             margin: 10px;
             cursor: pointer;
         }
-
-        .cross-button-container {
-            display: flex;
-            flex-direction: row;
-        }
     </style>
 </head>
 <body>
-    <canvas id="mazeCanvas" width="400" height="400"></canvas>
+    <div class="maze-container">
+        <canvas id="mazeCanvas" width="400" height="400"></canvas>
+    </div>
     <div class="button-container">
-        <div class="cross-button-container">
+        <div class="button-row">
             <button class="button" id="upButton">上</button>
         </div>
-        <div class="cross-button-container">
+        <div class="button-row">
             <button class="button" id="leftButton">左</button>
             <button class="button" id="rightButton">右</button>
         </div>
-        <div class="cross-button-container">
+        <div class="button-row">
             <button class="button" id="downButton">下</button>
         </div>
     </div>
