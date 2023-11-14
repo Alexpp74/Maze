@@ -6,40 +6,55 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
+        }
+
+        canvas {
+            border: 2px solid #333;
+            max-width: 80%; /* 縮小迷宮確保畫面可見 */
         }
 
         .maze-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-right: 20px;
-        }
-
-        canvas {
-            border: 2px solid #333;
         }
 
         .button-container {
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin-top: 20px; /* 在迷宮下方留出間距 */
         }
 
         .button-row {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
         }
 
         .button {
-            font-size: 24px; /* 調整按鈕大小 */
-            padding: 15px 30px; /* 調整按鈕大小 */
+            font-size: 24px;
+            padding: 15px 30px;
             margin: 10px;
             cursor: pointer;
-            touch-action: manipulation; /* 禁用手機的雙擊放大功能 */
+            touch-action: manipulation;
+        }
+
+        @media (orientation: portrait) {
+            /* 手機直向時的 CSS 設定 */
+            .button-container {
+                flex-direction: row; /* 上下按鈕水平排列 */
+                margin-top: 0; /* 移除在迷宮下方的間距 */
+            }
+
+            .button-row {
+                flex-direction: column; /* 上下按鈕垂直排列 */
+            }
         }
     </style>
 </head>
