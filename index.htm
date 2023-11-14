@@ -5,7 +5,7 @@
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             height: 100vh;
             margin: 0;
@@ -14,11 +14,30 @@
 
         canvas {
             border: 2px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 0 10px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <canvas id="mazeCanvas" width="400" height="400"></canvas>
+    <div class="button-container">
+        <button class="button" id="upButton">上</button>
+        <button class="button" id="downButton">下</button>
+        <button class="button" id="leftButton">左</button>
+        <button class="button" id="rightButton">右</button>
+    </div>
     <script>
         const canvas = document.getElementById('mazeCanvas');
         const ctx = canvas.getContext('2d');
@@ -91,7 +110,7 @@
             ctx.fillRect(player.x * cellSize, player.y * cellSize, cellSize, cellSize);
         }
 
-        function drawExit() {
+         function drawExit() {
             ctx.fillStyle = 'green'; // 出口顏色
             ctx.fillRect(exit.x * cellSize, exit.y * cellSize, cellSize, cellSize);
         }
@@ -111,6 +130,25 @@
                 alert('恭喜你贏得了遊戲！');
                 document.location.reload();
             }
+        }
+       function handleButtonClick(event) {
+            switch (event.target.id) {
+                case 'upButton':
+                    movePlayer({ x: 0, y: -1 });
+                    break;
+                case 'downButton':
+                    movePlayer({ x: 0, y: 1 });
+                    break;
+                case 'leftButton':
+                    movePlayer({ x: -1, y: 0 });
+                    break;
+                case 'rightButton':
+                    movePlayer({ x: 1, y: 0 });
+                    break;
+            }
+            drawMaze();
+            drawPlayer();
+            drawExit();
         }
 
         document.addEventListener('keydown', (event) => {
@@ -133,9 +171,16 @@
             drawExit();
         });
 
+  const buttons = document.querySelectorAll('.button');
+        buttons.forEach(button => {
+            button.addEventListener('click', handleButtonClick);
+        });
+
         drawMaze();
         drawPlayer();
         drawExit();
     </script>
 </body>
 </html>
+
+
