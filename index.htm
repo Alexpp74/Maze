@@ -20,12 +20,13 @@
         .button-container {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .button {
             font-size: 18px;
             padding: 10px 20px;
-            margin: 0 10px;
+            margin: 10px;
             cursor: pointer;
         }
     </style>
@@ -34,8 +35,8 @@
     <canvas id="mazeCanvas" width="400" height="400"></canvas>
     <div class="button-container">
         <button class="button" id="upButton">上</button>
-        <button class="button" id="downButton">下</button>
         <button class="button" id="leftButton">左</button>
+        <button class="button" id="downButton">下</button>
         <button class="button" id="rightButton">右</button>
     </div>
     <script>
