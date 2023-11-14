@@ -75,6 +75,17 @@
         </div>
     </div>
     <script>
+             // 檢測手機方向
+        window.addEventListener('orientationchange', function() {
+            if (window.orientation === 0) {
+                // 直向模式
+                document.querySelector('.button-row').style.flexDirection = 'column';
+            } else {
+                // 橫向模式
+                document.querySelector('.button-row').style.flexDirection = 'row';
+            }
+        });
+
         const canvas = document.getElementById('mazeCanvas');
         const ctx = canvas.getContext('2d');
 
