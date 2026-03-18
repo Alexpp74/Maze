@@ -64,9 +64,19 @@ def run_report():
         send_gmail_notification(report_path)
 
     except Exception as e:
-        logger.error(f"報告生成失敗：{e}", exc_info=True)
-        # 即使報告生成失敗，也嘗試寄送錯誤通知
-        _send_error_notification(str(e))
+        err = str(e)
+        # 偵測 Anthropic 費用超限錯誤
+        if any(k in err.lower() for k in ("credit", "billing", "quota", "402", "usage limit", "spend limit")):
+            msg = (
+                f"⛔ Anthropic API 月費已達上限，報告生成已停止。\n"
+                f"   請前往 console.anthropic.com → Settings → Limits 查看用量。\n"
+                f"   原始錯誤：{err}"
+            )
+            logger.error(msg)
+            _send_error_notification(msg)
+        else:
+            logger.error(f"報告生成失敗：{e}", exc_info=True)
+            _send_error_notification(err)
 
 
 def send_gmail_notification(report_path: str):
