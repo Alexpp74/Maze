@@ -1,0 +1,20 @@
+# 投資報告自動化系統 - 依賴套件
+# Investment Report Automation System - Dependencies
+
+# Claude AI SDK
+anthropic>=0.50.0
+claude-agent-sdk>=0.1.0
+
+# 金融資料
+yfinance>=0.2.36
+pandas>=2.0.0
+
+# 非同步支援
+anyio>=4.0.0
+
+# 排程（可選，或用系統 cron）
+schedule>=1.2.0
+
+# 通知（可選）
+# requests>=2.31.0       # Line Notify / Telegram
+# python-telegram-bot    # Telegram Bot
