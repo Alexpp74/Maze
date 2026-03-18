@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# 生成的報告（不加入版控）
+reports/*.md
+reports/*.log
+reports/debug/
+
+# 環境變數
+.env
+.env.local
+
+# 系統檔
+.DS_Store
