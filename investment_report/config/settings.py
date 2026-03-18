@@ -11,6 +11,20 @@ import os
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 # ============================================================
+# Gmail 郵件通知設定
+# 設定方式：
+#   1. 登入 Google → 安全性 → 開啟「2步驟驗證」
+#   2. 安全性 → 應用程式密碼 → 產生 16 碼 App Password
+#   3. export GMAIL_SENDER="your@gmail.com"
+#      export GMAIL_APP_PASSWORD="xxxx xxxx xxxx xxxx"
+#      export GMAIL_RECIPIENTS="you@gmail.com,partner@gmail.com"
+# ============================================================
+GMAIL_SENDER       = os.environ.get("GMAIL_SENDER", "")           # 你的 Gmail 帳號
+GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD", "")     # 16 碼 App Password
+GMAIL_RECIPIENTS   = os.environ.get("GMAIL_RECIPIENTS", "")       # 收件人（逗號分隔）
+GMAIL_SEND_REPORT  = os.environ.get("GMAIL_SEND_REPORT", "true").lower() == "true"  # 是否啟用
+
+# ============================================================
 # 追蹤標的設定
 # ============================================================
 TAIWAN_STOCKS = [
