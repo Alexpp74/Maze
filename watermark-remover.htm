@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件浮水印移除工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .upload-area {
+            border: 2px dashed #3a7bd5;
+            border-radius: 16px;
+            padding: 50px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(58, 123, 213, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            background: rgba(58, 123, 213, 0.15);
+            border-color: #00d2ff;
+        }
+
+        .upload-area .icon {
+            font-size: 3em;
+            margin-bottom: 12px;
+        }
+
+        .upload-area p {
+            font-size: 1.1em;
+            color: #aaa;
+        }
+
+        .upload-area .formats {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .controls.visible {
+            display: block;
+        }
+
+        .control-group {
+            margin-bottom: 18px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #ccc;
+        }
+
+        .control-group .hint {
+            font-size: 0.8em;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid transparent;
+            color: #aaa;
+            transition: all 0.2s;
+            font-size: 0.95em;
+        }
+
+        .tab:hover {
+            background: rgba(58, 123, 213, 0.2);
+        }
+
+        .tab.active {
+            background: rgba(58, 123, 213, 0.3);
+            border-color: #3a7bd5;
+            color: #fff;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: #3a7bd5;
+            height: 6px;
+        }
+
+        .slider-value {
+            min-width: 40px;
+            text-align: center;
+            color: #00d2ff;
+            font-weight: bold;
+        }
+
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .color-preset {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-preset:hover, .color-preset.active {
+            border-color: #00d2ff;
+            transform: scale(1.15);
+        }
+
+        input[type="color"] {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background: none;
+        }
+
+        .btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(58, 123, 213, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .preview-section {
+            display: none;
+            margin-bottom: 24px;
+        }
+
+        .preview-section.visible {
+            display: block;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .preview-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .preview-box h3 {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .preview-box .canvas-wrap {
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            max-height: 500px;
+            overflow: auto;
+        }
+
+        .preview-box canvas {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin: 16px 0;
+            display: none;
+        }
+
+        .progress-bar.visible {
+            display: block;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+            border-radius: 2px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .status {
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            margin: 8px 0;
+            min-height: 1.2em;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            accent-color: #3a7bd5;
+            width: 16px;
+            height: 16px;
+        }
+
+        .info-box {
+            background: rgba(58, 123, 213, 0.1);
+            border-left: 3px solid #3a7bd5;
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #aaa;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文件浮水印移除工具</h1>
+        <p class="subtitle">上傳圖片，選擇浮水印顏色，一鍵移除</p>
+
+        <div class="info-box">
+            支援移除半透明文字浮水印、Logo 浮水印等。上傳圖片後，選擇浮水印的顏色範圍，工具會自動將匹配的區域替換為背景色。效果取決於浮水印與背景的對比度。
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="icon">📄</div>
+            <p>點擊或拖曳圖片到此處上傳</p>
+            <p class="formats">支援格式：PNG、JPG、JPEG、BMP、WebP</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/bmp,image/webp">
+
+        <div class="controls" id="controls">
+            <div class="tabs">
+                <div class="tab active" data-mode="color">依顏色移除</div>
+                <div class="tab" data-mode="brightness">依亮度移除</div>
+                <div class="tab" data-mode="area">手動框選移除</div>
+            </div>
+
+            <!-- 顏色模式 -->
+            <div id="modeColor">
+                <div class="control-group">
+                    <label>選擇浮水印顏色</label>
+                    <div class="color-picker-row">
+                        <div class="color-preset active" style="background:#cccccc" data-color="#cccccc" title="淺灰色"></div>
+                        <div class="color-preset" style="background:#999999" data-color="#999999" title="中灰色"></div>
+                        <div class="color-preset" style="background:#ff9999" data-color="#ff9999" title="淺紅色"></div>
+                        <div class="color-preset" style="background:#9999ff" data-color="#9999ff" title="淺藍色"></div>
+                        <div class="color-preset" style="background:#ff6666" data-color="#ff6666" title="紅色"></div>
+                        <input type="color" id="customColor" value="#cccccc" title="自定顏色">
+                        <span style="color:#777;font-size:0.85em">或點擊圖片取色</span>
+                    </div>
+                    <div class="hint">選擇與浮水印最接近的顏色，或直接在原圖上點擊浮水印區域取色</div>
+                </div>
+
+                <div class="control-group">
+                    <label>顏色容差 (越大匹配範圍越廣)</label>
+                    <div class="slider-row">
+                        <input type="range" id="tolerance" min="1" max="150" value="40">
+                        <span class="slider-value" id="toleranceVal">40</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>邊緣羽化 (柔化處理邊緣)</label>
+                    <div class="slider-row">
+                        <input type="range" id="feather" min="0" max="10" value="2">
+                        <span class="slider-value" id="featherVal">2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 亮度模式 -->
+            <div id="modeBrightness" style="display:none">
+                <div class="control-group">
+                    <label>亮度閾值 (高於此值的像素將被移除)</label>
+                    <div class="slider-row">
+                        <input type="range" id="brightnessThreshold" min="100" max="255" value="200">
+                        <span class="slider-value" id="brightnessVal">200</span>
+                    </div>
+                    <div class="hint">適用於白色/淺色背景上的淺色浮水印</div>
+                </div>
+
+                <div class="control-group">
+                    <label>替換顏色</label>
+                    <div class="color-picker-row">
+                        <div class="color-preset active" style="background:#ffffff" data-replace="#ffffff" title="白色"></div>
+                        <div class="color-preset" style="background:#f5f5f5" data-replace="#f5f5f5" title="淺灰"></div>
+                        <input type="color" id="replaceColor" value="#ffffff" title="自定替換顏色">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 手動框選模式 -->
+            <div id="modeArea" style="display:none">
+                <div class="control-group">
+                    <label>在原圖上拖曳框選要移除的浮水印區域</label>
+                    <div class="hint">框選區域後，工具會使用周圍像素進行修復填充</div>
+                </div>
+
+                <div class="control-group">
+                    <label>修復半徑</label>
+                    <div class="slider-row">
+                        <input type="range" id="inpaintRadius" min="3" max="20" value="8">
+                        <span class="slider-value" id="inpaintVal">8</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="preserveText" checked>
+                <label for="preserveText" style="color:#aaa;font-size:0.9em">保護深色文字 (避免移除正文內容)</label>
+            </div>
+
+            <div style="margin-top:20px" class="btn-row">
+                <button class="btn btn-primary" id="processBtn" disabled>開始移除浮水印</button>
+                <button class="btn btn-secondary" id="resetBtn">重新上傳</button>
+                <button class="btn btn-secondary" id="downloadBtn" style="display:none">下載結果</button>
+            </div>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="fill" id="progressFill"></div>
+        </div>
+        <div class="status" id="status"></div>
+
+        <div class="preview-section" id="previewSection">
+            <div class="preview-grid">
+                <div class="preview-box">
+                    <h3>原始圖片</h3>
+                    <div class="canvas-wrap">
+                        <canvas id="originalCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <h3>處理結果</h3>
+                    <div class="canvas-wrap">
+                        <canvas id="resultCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const controls = document.getElementById('controls');
+        const previewSection = document.getElementById('previewSection');
+        const originalCanvas = document.getElementById('originalCanvas');
+        const resultCanvas = document.getElementById('resultCanvas');
+        const processBtn = document.getElementById('processBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const statusEl = document.getElementById('status');
+
+        let originalImage = null;
+        let originalImageData = null;
+        let currentMode = 'color';
+        let selectedColor = { r: 204, g: 204, b: 204 };
+        let replaceColorHex = '#ffffff';
+        let selectionRect = null;
+        let isSelecting = false;
+        let selStart = null;
+
+        // Upload handling
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('請上傳圖片檔案');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    drawOriginal();
+                    controls.classList.add('visible');
+                    previewSection.classList.add('visible');
+                    processBtn.disabled = false;
+                    downloadBtn.style.display = 'none';
+                    uploadArea.style.display = 'none';
+                    statusEl.textContent = `已載入: ${file.name} (${img.width} x ${img.height})`;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function drawOriginal() {
+            const ctx = originalCanvas.getContext('2d');
+            originalCanvas.width = originalImage.width;
+            originalCanvas.height = originalImage.height;
+            ctx.drawImage(originalImage, 0, 0);
+            originalImageData = ctx.getImageData(0, 0, originalCanvas.width, originalCanvas.height);
+
+            // Clear result
+            const rctx = resultCanvas.getContext('2d');
+            resultCanvas.width = originalImage.width;
+            resultCanvas.height = originalImage.height;
+            rctx.fillStyle = '#1a1a2e';
+            rctx.fillRect(0, 0, resultCanvas.width, resultCanvas.height);
+            rctx.fillStyle = '#555';
+            rctx.font = '20px sans-serif';
+            rctx.textAlign = 'center';
+            rctx.fillText('處理後的結果將顯示在這裡', resultCanvas.width / 2, resultCanvas.height / 2);
+        }
+
+        // Color picker from image
+        originalCanvas.addEventListener('click', e => {
+            if (currentMode === 'area' && !isSelecting) return;
+            if (currentMode === 'area') return;
+            if (!originalImageData) return;
+
+            const rect = originalCanvas.getBoundingClientRect();
+            const scaleX = originalCanvas.width / rect.width;
+            const scaleY = originalCanvas.height / rect.height;
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+            const idx = (y * originalCanvas.width + x) * 4;
+
+            selectedColor = {
+                r: originalImageData.data[idx],
+                g: originalImageData.data[idx + 1],
+                b: originalImageData.data[idx + 2]
+            };
+
+            const hex = rgbToHex(selectedColor.r, selectedColor.g, selectedColor.b);
+            document.getElementById('customColor').value = hex;
+
+            // Deactivate presets
+            document.querySelectorAll('#modeColor .color-preset').forEach(p => p.classList.remove('active'));
+            statusEl.textContent = `已選取顏色: RGB(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b})`;
+        });
+
+        // Area selection on original canvas
+        originalCanvas.addEventListener('mousedown', e => {
+            if (currentMode !== 'area') return;
+            const rect = originalCanvas.getBoundingClientRect();
+            const scaleX = originalCanvas.width / rect.width;
+            const scaleY = originalCanvas.height / rect.height;
+            selStart = {
+                x: Math.floor((e.clientX - rect.left) * scaleX),
+                y: Math.floor((e.clientY - rect.top) * scaleY)
+            };
+            isSelecting = true;
+        });
+
+        originalCanvas.addEventListener('mousemove', e => {
+            if (!isSelecting || currentMode !== 'area') return;
+            const rect = originalCanvas.getBoundingClientRect();
+            const scaleX = originalCanvas.width / rect.width;
+            const scaleY = originalCanvas.height / rect.height;
+            const x = Math.floor((e.clientX - rect.left) * scaleX);
+            const y = Math.floor((e.clientY - rect.top) * scaleY);
+
+            selectionRect = {
+                x: Math.min(selStart.x, x),
+                y: Math.min(selStart.y, y),
+                w: Math.abs(x - selStart.x),
+                h: Math.abs(y - selStart.y)
+            };
+
+            // Redraw with selection overlay
+            const ctx = originalCanvas.getContext('2d');
+            ctx.drawImage(originalImage, 0, 0);
+            ctx.strokeStyle = '#00d2ff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 3]);
+            ctx.strokeRect(selectionRect.x, selectionRect.y, selectionRect.w, selectionRect.h);
+            ctx.fillStyle = 'rgba(0, 210, 255, 0.15)';
+            ctx.fillRect(selectionRect.x, selectionRect.y, selectionRect.w, selectionRect.h);
+            ctx.setLineDash([]);
+        });
+
+        originalCanvas.addEventListener('mouseup', () => {
+            isSelecting = false;
+            if (selectionRect && selectionRect.w > 5 && selectionRect.h > 5) {
+                statusEl.textContent = `已選取區域: (${selectionRect.x}, ${selectionRect.y}) ${selectionRect.w}x${selectionRect.h}`;
+            }
+        });
+
+        // Tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentMode = tab.dataset.mode;
+
+                document.getElementById('modeColor').style.display = currentMode === 'color' ? '' : 'none';
+                document.getElementById('modeBrightness').style.display = currentMode === 'brightness' ? '' : 'none';
+                document.getElementById('modeArea').style.display = currentMode === 'area' ? '' : 'none';
+
+                originalCanvas.style.cursor = currentMode === 'area' ? 'crosshair' : 'crosshair';
+                selectionRect = null;
+                if (originalImage) drawOriginal();
+            });
+        });
+
+        // Color presets
+        document.querySelectorAll('#modeColor .color-preset').forEach(preset => {
+            preset.addEventListener('click', () => {
+                document.querySelectorAll('#modeColor .color-preset').forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                const hex = preset.dataset.color;
+                const rgb = hexToRgb(hex);
+                selectedColor = rgb;
+                document.getElementById('customColor').value = hex;
+            });
+        });
+
+        document.getElementById('customColor').addEventListener('input', e => {
+            const rgb = hexToRgb(e.target.value);
+            selectedColor = rgb;
+            document.querySelectorAll('#modeColor .color-preset').forEach(p => p.classList.remove('active'));
+        });
+
+        // Replace color presets
+        document.querySelectorAll('#modeBrightness .color-preset').forEach(preset => {
+            preset.addEventListener('click', () => {
+                document.querySelectorAll('#modeBrightness .color-preset').forEach(p => p.classList.remove('active'));
+                preset.classList.add('active');
+                replaceColorHex = preset.dataset.replace;
+                document.getElementById('replaceColor').value = replaceColorHex;
+            });
+        });
+
+        document.getElementById('replaceColor').addEventListener('input', e => {
+            replaceColorHex = e.target.value;
+            document.querySelectorAll('#modeBrightness .color-preset').forEach(p => p.classList.remove('active'));
+        });
+
+        // Sliders
+        document.getElementById('tolerance').addEventListener('input', e => {
+            document.getElementById('toleranceVal').textContent = e.target.value;
+        });
+        document.getElementById('feather').addEventListener('input', e => {
+            document.getElementById('featherVal').textContent = e.target.value;
+        });
+        document.getElementById('brightnessThreshold').addEventListener('input', e => {
+            document.getElementById('brightnessVal').textContent = e.target.value;
+        });
+        document.getElementById('inpaintRadius').addEventListener('input', e => {
+            document.getElementById('inpaintVal').textContent = e.target.value;
+        });
+
+        // Reset
+        resetBtn.addEventListener('click', () => {
+            originalImage = null;
+            originalImageData = null;
+            selectionRect = null;
+            controls.classList.remove('visible');
+            previewSection.classList.remove('visible');
+            uploadArea.style.display = '';
+            downloadBtn.style.display = 'none';
+            progressBar.classList.remove('visible');
+            statusEl.textContent = '';
+            fileInput.value = '';
+        });
+
+        // Process
+        processBtn.addEventListener('click', () => {
+            if (!originalImage) return;
+            processBtn.disabled = true;
+            progressBar.classList.add('visible');
+            downloadBtn.style.display = 'none';
+
+            // Use setTimeout to allow UI to update
+            setTimeout(() => {
+                try {
+                    if (currentMode === 'color') {
+                        processColorMode();
+                    } else if (currentMode === 'brightness') {
+                        processBrightnessMode();
+                    } else if (currentMode === 'area') {
+                        processAreaMode();
+                    }
+                } catch (err) {
+                    statusEl.textContent = '處理錯誤: ' + err.message;
+                }
+                processBtn.disabled = false;
+            }, 50);
+        });
+
+        function processColorMode() {
+            const tolerance = parseInt(document.getElementById('tolerance').value);
+            const feather = parseInt(document.getElementById('feather').value);
+            const preserveText = document.getElementById('preserveText').checked;
+
+            const ctx = resultCanvas.getContext('2d');
+            resultCanvas.width = originalCanvas.width;
+            resultCanvas.height = originalCanvas.height;
+            ctx.drawImage(originalImage, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, resultCanvas.width, resultCanvas.height);
+            const data = imageData.data;
+            const w = resultCanvas.width;
+            const h = resultCanvas.height;
+
+            // Build a mask of pixels to remove
+            const mask = new Float32Array(w * h);
+            const totalPixels = w * h;
+
+            for (let i = 0; i < totalPixels; i++) {
+                const idx = i * 4;
+                const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+
+                // Color distance
+                const dr = r - selectedColor.r;
+                const dg = g - selectedColor.g;
+                const db = b - selectedColor.b;
+                const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+
+                if (dist <= tolerance) {
+                    // Protect dark text
+                    if (preserveText) {
+                        const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+                        if (brightness < 80) {
+                            mask[i] = 0;
+                            continue;
+                        }
+                    }
+                    mask[i] = 1.0 - (dist / tolerance) * 0.3;
+                }
+
+                if (i % 100000 === 0) {
+                    const pct = Math.floor((i / totalPixels) * 60);
+                    progressFill.style.width = pct + '%';
+                }
+            }
+
+            statusEl.textContent = '正在進行羽化處理...';
+            progressFill.style.width = '60%';
+
+            // Feather the mask with box blur
+            if (feather > 0) {
+                blurMask(mask, w, h, feather);
+            }
+
+            progressFill.style.width = '80%';
+            statusEl.textContent = '正在替換像素...';
+
+            // Replace masked pixels with surrounding background color
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const i = y * w + x;
+                    if (mask[i] > 0.01) {
+                        const bg = sampleBackground(data, w, h, x, y, mask, 12);
+                        const idx = i * 4;
+                        const alpha = mask[i];
+                        data[idx] = Math.round(data[idx] * (1 - alpha) + bg.r * alpha);
+                        data[idx + 1] = Math.round(data[idx + 1] * (1 - alpha) + bg.g * alpha);
+                        data[idx + 2] = Math.round(data[idx + 2] * (1 - alpha) + bg.b * alpha);
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            progressFill.style.width = '100%';
+            statusEl.textContent = '處理完成！';
+            downloadBtn.style.display = '';
+        }
+
+        function processBrightnessMode() {
+            const threshold = parseInt(document.getElementById('brightnessThreshold').value);
+            const preserveText = document.getElementById('preserveText').checked;
+            const replaceRgb = hexToRgb(replaceColorHex);
+
+            const ctx = resultCanvas.getContext('2d');
+            resultCanvas.width = originalCanvas.width;
+            resultCanvas.height = originalCanvas.height;
+            ctx.drawImage(originalImage, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, resultCanvas.width, resultCanvas.height);
+            const data = imageData.data;
+            const totalPixels = data.length / 4;
+
+            for (let i = 0; i < totalPixels; i++) {
+                const idx = i * 4;
+                const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+                const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                if (brightness >= threshold) {
+                    data[idx] = replaceRgb.r;
+                    data[idx + 1] = replaceRgb.g;
+                    data[idx + 2] = replaceRgb.b;
+                }
+
+                if (i % 100000 === 0) {
+                    progressFill.style.width = Math.floor((i / totalPixels) * 100) + '%';
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            progressFill.style.width = '100%';
+            statusEl.textContent = '處理完成！';
+            downloadBtn.style.display = '';
+        }
+
+        function processAreaMode() {
+            if (!selectionRect || selectionRect.w < 5 || selectionRect.h < 5) {
+                statusEl.textContent = '請先在原圖上框選浮水印區域';
+                processBtn.disabled = false;
+                return;
+            }
+
+            const radius = parseInt(document.getElementById('inpaintRadius').value);
+            const ctx = resultCanvas.getContext('2d');
+            resultCanvas.width = originalCanvas.width;
+            resultCanvas.height = originalCanvas.height;
+            ctx.drawImage(originalImage, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, resultCanvas.width, resultCanvas.height);
+            const data = imageData.data;
+            const w = resultCanvas.width;
+            const h = resultCanvas.height;
+
+            const sx = selectionRect.x, sy = selectionRect.y;
+            const sw = selectionRect.w, sh = selectionRect.h;
+
+            // Simple inpainting: for each pixel in selection, average from border pixels
+            const borderPixels = [];
+
+            // Collect border pixels (outside selection, within radius)
+            for (let dy = -radius; dy <= sh + radius; dy++) {
+                for (let dx = -radius; dx <= sw + radius; dx++) {
+                    const px = sx + dx, py = sy + dy;
+                    if (px < 0 || px >= w || py < 0 || py >= h) continue;
+                    // Skip pixels inside selection
+                    if (dx >= 0 && dx < sw && dy >= 0 && dy < sh) continue;
+                    const idx = (py * w + px) * 4;
+                    borderPixels.push({ x: px, y: py, r: data[idx], g: data[idx + 1], b: data[idx + 2] });
+                }
+            }
+
+            statusEl.textContent = '正在修復區域...';
+
+            // For each pixel in selection, weighted average of border pixels (inverse distance)
+            for (let dy = 0; dy < sh; dy++) {
+                for (let dx = 0; dx < sw; dx++) {
+                    const px = sx + dx, py = sy + dy;
+                    const idx = (py * w + px) * 4;
+
+                    let totalWeight = 0, rSum = 0, gSum = 0, bSum = 0;
+
+                    for (const bp of borderPixels) {
+                        const distSq = (px - bp.x) ** 2 + (py - bp.y) ** 2;
+                        if (distSq === 0) continue;
+                        const weight = 1 / (distSq);
+                        totalWeight += weight;
+                        rSum += bp.r * weight;
+                        gSum += bp.g * weight;
+                        bSum += bp.b * weight;
+                    }
+
+                    if (totalWeight > 0) {
+                        data[idx] = Math.round(rSum / totalWeight);
+                        data[idx + 1] = Math.round(gSum / totalWeight);
+                        data[idx + 2] = Math.round(bSum / totalWeight);
+                    }
+                }
+
+                progressFill.style.width = Math.floor((dy / sh) * 100) + '%';
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            progressFill.style.width = '100%';
+            statusEl.textContent = '處理完成！';
+            downloadBtn.style.display = '';
+        }
+
+        function sampleBackground(data, w, h, x, y, mask, radius) {
+            let rSum = 0, gSum = 0, bSum = 0, count = 0;
+
+            for (let dy = -radius; dy <= radius; dy++) {
+                for (let dx = -radius; dx <= radius; dx++) {
+                    const nx = x + dx, ny = y + dy;
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                    const ni = ny * w + nx;
+                    if (mask[ni] > 0.3) continue; // Skip masked pixels
+                    const idx = ni * 4;
+                    rSum += data[idx];
+                    gSum += data[idx + 1];
+                    bSum += data[idx + 2];
+                    count++;
+                }
+            }
+
+            if (count === 0) return { r: 255, g: 255, b: 255 };
+            return {
+                r: Math.round(rSum / count),
+                g: Math.round(gSum / count),
+                b: Math.round(bSum / count)
+            };
+        }
+
+        function blurMask(mask, w, h, radius) {
+            const temp = new Float32Array(w * h);
+            // Horizontal pass
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let sum = 0, count = 0;
+                    for (let dx = -radius; dx <= radius; dx++) {
+                        const nx = x + dx;
+                        if (nx >= 0 && nx < w) {
+                            sum += mask[y * w + nx];
+                            count++;
+                        }
+                    }
+                    temp[y * w + x] = sum / count;
+                }
+            }
+            // Vertical pass
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let sum = 0, count = 0;
+                    for (let dy = -radius; dy <= radius; dy++) {
+                        const ny = y + dy;
+                        if (ny >= 0 && ny < h) {
+                            sum += temp[ny * w + x];
+                            count++;
+                        }
+                    }
+                    mask[y * w + x] = sum / count;
+                }
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 0, g: 0, b: 0 };
+        }
+
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Download
+        downloadBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'watermark-removed.png';
+            link.href = resultCanvas.toDataURL('image/png');
+            link.click();
+        });
+    </script>
+</body>
+</html>
